@@ -1,206 +1,414 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Sistema de Detección</title>
-    <style>
-        :root {
-            --bg-color: #f5f5f7;
-            --card-bg: #ffffff;
-            --text-primary: #1d1d1f;
-            --text-secondary: #86868b;
-            --accent: #0066cc;
-            --accent-hover: #004499;
-            --border-radius: 16px;
-            --danger-bg: #fff2f2;
-            --danger-border: #ffcccc;
-            --danger-text: #cc0000;
-            --success-bg: #f0fdf4;
-            --success-border: #bbf7d0;
-            --success-text: #166534;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Principal · Vigilancia de minería ilegal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --forest: #10231d;
+  --forest-2: #183328;
+  --ochre: #d08a2e;
+  --ochre-dark: #a96d1c;
+  --mercury: #34b3a6;
+  --paper: #f5f5f7;
+  --card: #ffffff;
+  --ink: #1d1d1f;
+  --muted: #86868b;
+  --line: #d2d2d7;
+  --danger: #cc0000;
+  --success: #166534;
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 40px 20px;
-            -webkit-font-smoothing: antialiased;
-        }
+* { box-sizing: border-box; }
 
-        .wrapper {
-            max-width: 880px;
-            margin: 0 auto;
-        }
+body {
+  margin: 0;
+  font-family: "Instrument Sans", "Segoe UI", Arial, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
 
-        .header {
-            background: var(--card-bg);
-            padding: 24px 32px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
+.hero {
+  position: relative;
+  color: #f2f5f3;
+  padding: 22px 6vw 120px;
+  background-color: var(--forest);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='520' viewBox='0 0 900 520' fill='none' stroke='%2334b3a6' stroke-opacity='.22' stroke-width='1.2'%3E%3Cpath d='M120 260c10-90 120-150 230-130s170 90 150 170-110 130-210 120-180-70-170-160z'/%3E%3Cpath d='M160 262c10-68 98-112 186-96s132 72 116 134-84 102-162 92-148-54-140-130z'/%3E%3Cpath d='M205 262c8-46 74-76 138-64s92 52 80 96-60 72-116 64-110-38-102-96z'/%3E%3Cpath d='M250 262c6-26 50-42 92-34s58 32 50 58-38 44-72 38-76-24-70-62z'/%3E%3Cpath d='M560 90c60-40 150-30 200 20s40 120-20 150-150 20-190-30-50-100 10-140z'/%3E%3Cpath d='M600 110c46-26 112-20 150 18s30 92-16 114-112 14-142-24-38-76 8-108z'/%3E%3Cpath d='M640 140c30-16 72-10 96 14s18 58-10 72-70 8-90-16-26-48 4-70z'/%3E%3Cpath d='M0 430c120-40 240 10 360-20s220-70 340-30 140 30 200 10'/%3E%3Cpath d='M0 470c120-40 240 10 360-20s220-70 340-30 140 30 200 10'/%3E%3C/svg%3E"),
+    radial-gradient(900px 380px at 85% 10%, rgba(208,138,46,.20), transparent 60%),
+    linear-gradient(160deg, var(--forest-2), var(--forest) 70%);
+  background-size: 900px 520px, auto, auto;
+}
 
-        .header h1 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        }
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
 
-        .logout-btn {
-            background-color: #e5e5ea;
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 980px;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: background 0.2s ease;
-        }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.brand svg { flex: none; }
+.brand small { display: block; font-weight: 400; color: #a9bdb4; font-size: 12.5px; }
 
-        .logout-btn:hover {
-            background-color: #d1d1d6;
-        }
+.user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: #cfdcd5;
+}
+.user strong { color: #fff; font-weight: 600; }
 
-        .card {
-            background: var(--card-bg);
-            padding: 32px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-            margin-bottom: 24px;
-        }
+a.logout {
+  color: #f2f5f3;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 980px;
+  transition: background .2s, border-color .2s;
+}
+a.logout:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.5); }
 
-        .card h2 {
-            margin-top: 0;
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            color: var(--text-primary);
-        }
+.hero-copy { max-width: 720px; margin-top: 54px; }
+.hero-copy h1 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 4.2vw, 42px);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+.hero-copy p { margin: 0; font-size: 16px; color: #bccdc5; max-width: 60ch; }
 
-        .card p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 20px;
-        }
+main {
+  position: relative;
+  margin: -72px auto 60px;
+  padding: 0 6vw;
+  max-width: 1280px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
+.section {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--ochre);
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 14px 40px -18px rgba(16,35,29,.25);
+  display: flex;
+  flex-direction: column;
+}
+.section.detect { border-top-color: var(--mercury); }
+.section.cam-section { grid-column: span 2; border-top-color: #2563eb; }
 
-        .file-input-wrapper {
-            position: relative;
-            border: 1.5px dashed #d2d2d7;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            background-color: #fafafc;
-            transition: border-color 0.2s ease;
-        }
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.step .num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 14px;
+  background: #f6e7cf; color: var(--ochre-dark);
+}
+.detect .step .num { background: #d5efec; color: #1d7d73; }
+.cam-section .step .num { background: #dbeafe; color: #1d4ed8; }
 
-        .file-input-wrapper:hover {
-            border-color: var(--accent);
-        }
+.step h2 { margin: 0; font-size: 19px; letter-spacing: -.01em; }
+.section > p { margin: 4px 0 20px; color: var(--muted); font-size: 14.5px; }
 
-        input[type="file"] {
-            font-size: 14px;
-            color: var(--text-secondary);
-            width: 100%;
-        }
+.form-group { display: flex; flex-direction: column; gap: 16px; margin-top: auto; }
 
-        .btn {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            border-radius: 980px;
-            cursor: pointer;
-            transition: background 0.2s ease, transform 0.1s ease;
-            align-self: flex-start;
-        }
+.dropzone {
+  position: relative;
+  border: 2px dashed #b9c6bf;
+  border-radius: 12px;
+  background: #fafafc;
+  padding: 24px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.dropzone:hover { border-color: var(--ochre); background: #fdf7ec; }
+.detect .dropzone:hover { border-color: var(--mercury); background: #f0faf9; }
 
-        .btn:hover {
-            background-color: var(--accent-hover);
-        }
+.dropzone input[type="file"] {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0; cursor: pointer;
+}
+.dropzone svg { color: var(--muted); margin-bottom: 8px; }
+.dropzone .title { font-weight: 600; font-size: 14.5px; }
+.dropzone .hint { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.dropzone .picked { font-size: 13.5px; font-weight: 600; color: #1d6b4f; margin-top: 10px; }
 
-        .btn:active {
-            transform: scale(0.98);
-        }
+.preview {
+  display: none;
+  max-height: 190px; width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  background: #000;
+}
 
-        .alert {
-            margin-top: 20px;
-            padding: 16px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            letter-spacing: -0.01em;
-        }
+button.btn-submit {
+  align-self: flex-start;
+  background: var(--forest);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  border-radius: 980px;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+}
+button.btn-submit:hover { background: var(--forest-2); }
+.detect button.btn-submit { background: #1d7d73; }
+.detect button.btn-submit:hover { background: #17665e; }
+.cam-section button.btn-submit { background: #2563eb; }
+.cam-section button.btn-submit:hover { background: #1d4ed8; }
 
-        .alert.danger {
-            background-color: var(--danger-bg);
-            border: 1px solid var(--danger-border);
-            color: var(--danger-text);
-        }
+.alert {
+  margin-top: 20px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.alert.danger {
+  background-color: #fff2f2;
+  border: 1px solid #ffcccc;
+  color: var(--danger);
+}
+.alert.success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: var(--success);
+}
 
-        .alert.success {
-            background-color: var(--success-bg);
-            border: 1px solid var(--success-border);
-            color: var(--success-text);
-        }
-    </style>
+/* Estilos específicos para la cámara web */
+.cam-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+video, canvas {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 12px;
+  background: #000;
+  border: 1px solid var(--line);
+}
+.cam-controls {
+  display: flex;
+  gap: 12px;
+}
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 0 6vw 36px;
+}
+
+@media (max-width: 860px) {
+  main { grid-template-columns: 1fr; }
+  .section.cam-section { grid-column: span 1; }
+  .hero { padding-bottom: 100px; }
+}
+</style>
 </head>
 <body>
 
-    <div class="wrapper">
-        <div class="header">
-            <h1>Sesión Activa: {{ username }}</h1>
-            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
-        </div>
-        
-        <!-- Sección 1: Panel de Entrenamiento -->
-        <div class="card">
-            <h2>Panel de Entrenamiento (Google Colab)</h2>
-            <p>Configuración del flujo de trabajo y directorios para el procesamiento del dataset de entrenamiento.</p>
-            <form action="/entrenar" method="POST" enctype="multipart/form-data" class="form-group">
-                <div class="file-input-wrapper">
-                    <input type="file" name="archivos_entrenamiento" webkitdirectory directory multiple>
-                </div>
-                <button type="submit" class="btn">Iniciar Configuración</button>
-            </form>
-            {% if resultado_entreno %}
-                <div class="alert success" style="margin-top: 20px;">{{ resultado_entreno }}</div>
-            {% endif %}
-        </div>
-
-        <!-- Sección 2: Detección y Análisis -->
-        <div class="card">
-            <h2>Análisis de Imágenes Satelitales</h2>
-            <p>Seleccione una imagen aérea o satelital para ejecutar la red neuronal y evaluar la presencia de minería ilegal.</p>
-            <form action="/detectar" method="POST" enctype="multipart/form-data" class="form-group">
-                <div class="file-input-wrapper">
-                    <input type="file" name="imagen_satelital" accept="image/*" required>
-                </div>
-                <button type="submit" class="btn">Procesar e Interpretar Imagen</button>
-            </form>
-
-            {% if resultado %}
-                <div class="alert {{ tipo_alerta }}">
-                    {{ resultado }}
-                </div>
-            {% endif %}
-        </div>
+<header class="hero">
+  <div class="topbar">
+    <div class="brand">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+        <circle cx="17" cy="17" r="15.5" stroke="#34b3a6" stroke-width="1.5"/>
+        <circle cx="17" cy="17" r="9" stroke="#34b3a6" stroke-opacity=".6" stroke-width="1.5"/>
+        <circle cx="17" cy="17" r="3" fill="#d08a2e"/>
+      </svg>
+      <div>
+        Centinela Minero
+        <small>Detección satelital de minería ilegal</small>
+      </div>
     </div>
+    <div class="user">
+      <span>Sesión de <strong>{{ username }}</strong></span>
+      <a href="/logout" class="logout">Cerrar sesión</a>
+    </div>
+  </div>
 
+  <div class="hero-copy">
+    <h1>Bienvenido, {{ username }}</h1>
+    <p>Entrena el modelo con imágenes de referencia, analiza zonas sospechosas por fotografía o enciende la cámara para pruebas en tiempo real.</p>
+  </div>
+</header>
+
+<main>
+  <!-- Sección 1: Entrenamiento -->
+  <section class="section">
+    <div class="step"><span class="num">1</span><h2>Entrenar el modelo</h2></div>
+    <p>Sube las carpetas con imágenes de entrenamiento. El proceso se ejecuta en Colab.</p>
+    <form action="/entrenar" method="POST" enctype="multipart/form-data" class="form-group">
+      <label class="dropzone">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <div class="title">Selecciona o arrastra una carpeta</div>
+        <div class="hint">Imágenes organizadas por clase</div>
+        <div class="picked" id="pickedTrain"></div>
+        <input type="file" name="archivos_entrenamiento" id="fileTrain" webkitdirectory directory multiple>
+      </label>
+      <button type="submit" class="btn-submit">Iniciar entrenamiento</button>
+    </form>
+    {% if resultado_entreno %}
+        <div class="alert success" style="margin-top: 15px;">{{ resultado_entreno }}</div>
+    {% endif %}
+  </section>
+
+  <!-- Sección 2: Detección por Imagen -->
+  <section class="section detect">
+    <div class="step"><span class="num">2</span><h2>Analizar una imagen</h2></div>
+    <p>Sube una imagen satelital o aérea para verificar si hay indicios de minería ilegal.</p>
+    <form action="/detectar" method="POST" enctype="multipart/form-data" class="form-group">
+      <label class="dropzone">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <div class="title">Selecciona o arrastra una imagen</div>
+        <div class="hint">Formatos JPG, PNG, TIFF</div>
+        <div class="picked" id="pickedDetect"></div>
+        <img class="preview" id="previewDetect" alt="Vista previa">
+        <input type="file" name="imagen_satelital" id="fileDetect" accept="image/*">
+      </label>
+      <button type="submit" class="btn-submit">Analizar imagen</button>
+    </form>
+
+    {% if resultado %}
+        <div class="alert {{ tipo_alerta }}">
+            {{ resultado }}
+        </div>
+    {% endif %}
+  </section>
+
+  <!-- Sección 3: Detección en Tiempo Real con Cámara Web -->
+  <section class="section cam-section">
+    <div class="step"><span class="num">3</span><h2>Monitoreo en Tiempo Real (Cámara Web)</h2></div>
+    <p>Activa la cámara para realizar escaneos continuos en busca de patrones de minería ilegal.</p>
+    <div class="cam-container">
+      <video id="webcam" autoplay playsinline></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+      <div class="cam-controls">
+        <button type="button" id="startCam" class="btn-submit">Encender Cámara</button>
+        <button type="button" id="stopCam" class="btn-submit" style="background:#ef4444; display:none;">Apagar Cámara</button>
+      </div>
+      <div id="camResult" class="alert" style="display:none; width:100%; text-align:center;"></div>
+    </div>
+  </section>
+</main>
+
+<footer>Los resultados son un apoyo al análisis y deben ser verificados por un especialista.</footer>
+
+<script>
+// Visualización de archivos y previsualizaciones
+const fileTrain = document.getElementById('fileTrain');
+const fileDetect = document.getElementById('fileDetect');
+
+fileTrain.addEventListener('change', () => {
+  const n = fileTrain.files.length;
+  document.getElementById('pickedTrain').textContent = n ? n + (n === 1 ? ' archivo seleccionado' : ' archivos seleccionados') : '';
+});
+
+fileDetect.addEventListener('change', () => {
+  const f = fileDetect.files[0];
+  const img = document.getElementById('previewDetect');
+  document.getElementById('pickedDetect').textContent = f ? f.name : '';
+  if (f) { img.src = URL.createObjectURL(f); img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+});
+
+// Lógica de la Cámara Web en Tiempo Real
+const video = document.getElementById('webcam');
+const canvas = document.getElementById('canvas');
+const startBtn = document.getElementById('startCam');
+const stopBtn = document.getElementById('stopCam');
+const camResult = document.getElementById('camResult');
+let streamInterval = null;
+
+startBtn.addEventListener('click', async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 300, height: 300 } });
+    video.srcObject = stream;
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-block';
+    camResult.style.display = 'block';
+    camResult.className = 'alert success';
+    camResult.textContent = 'Cámara activa. Analizando fotogramas...';
+
+    // Capturar y enviar fotogramas cada 2 segundos al backend Flask
+    streamInterval = setInterval(() => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append('imagen_satelital', blob, 'webcam_frame.jpg');
+
+        fetch('/detectar', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.text())
+        .then(html => {
+          // Extraer mensaje del resultado devuelto por Flask mediante DOMParser
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const alertBox = doc.querySelector('.alert.danger, .alert.success');
+          if (alertBox) {
+            camResult.className = alertBox.className;
+            camResult.textContent = "Tiempo Real -> " + alertBox.textContent.trim();
+          }
+        }).catch(err => console.error("Error en tiempo real:", err));
+      }, 'image/jpeg', 0.7);
+    }, 2500);
+
+  } catch (err) {
+    alert("No se pudo acceder a la cámara web: " + err);
+  }
+});
+
+stopBtn.addEventListener('click', () => {
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(track => track.stop());
+    video.srcObject = null;
+  }
+  clearInterval(streamInterval);
+  startBtn.style.display = 'inline-block';
+  stopBtn.style.display = 'none';
+  camResult.style.display = 'none';
+});
+</script>
 </body>
 </html>
