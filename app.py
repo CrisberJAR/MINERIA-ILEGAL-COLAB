@@ -131,11 +131,14 @@ def detectar():
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
-        if prediction > 0.5:
-            resultado = f"Alerta: Indicios de Mineria Ilegal Detectados (Nivel de Confianza: {prediction*100:.2f}%)"
+        # Lógica de clases invertida para hacer coincidir con el orden alfabético del entrenamiento
+        if prediction < 0.5:
+            confianza = (1.0 - prediction) * 100
+            resultado = f"Alerta: Indicios de Mineria Ilegal Detectados (Nivel de Confianza: {confianza:.2f}%)"
             tipo_alerta = "danger"
         else:
-            resultado = f"Resultado: Area Normal / Sin Indicios de Mineria Ilegal (Nivel de Confianza: {(1-prediction)*100:.2f}%)"
+            confianza = prediction * 100
+            resultado = f"Resultado: Area Normal / Sin Indicios de Mineria Ilegal (Nivel de Confianza: {confianza:.2f}%)"
             tipo_alerta = "success"
 
         return render_template('dashboard.html', username=session['username'], resultado=resultado, tipo_alerta=tipo_alerta)
