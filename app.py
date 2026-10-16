@@ -15,13 +15,14 @@ client = MongoClient(MONGO_URI)
 db = client['mineria_ilegal']
 users_collection = db['users']
 
-# Cargar el modelo preentrenado de TensorFlow
+# Cargar el modelo preentrenado de TensorFlow de forma segura (compatible con Render)
 MODEL_PATH = 'modelo_mineria.h5'
 model = None
 
 if os.path.exists(MODEL_PATH):
     try:
-        model = tf.keras.models.load_model(MODEL_PATH)
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
         print("Modelo cargado exitosamente.")
     except Exception as e:
         print(f"Error al cargar el modelo: {e}")
@@ -77,8 +78,7 @@ def dashboard():
 def entrenar():
     if 'username' not in session:
         return redirect(url_for('login'))
-    # Nota: El entrenamiento pesado se realiza desde la terminal de Colab por requerimiento académico.
-    mensaje = "Recuerda que el entrenamiento del modelo se realiza mediante la terminal de Google Colab y el archivo generado se integra en el sistema."
+    mensaje = "Nota: El entrenamiento del modelo se ejecuta directamente desde la terminal de Google Colab por requerimiento académico."
     return render_template('dashboard.html', username=session['username'], resultado_entreno=mensaje)
 
 @app.route('/detectar', methods=['POST'])
@@ -87,37 +87,37 @@ def detectar():
         return redirect(url_for('login'))
 
     if 'imagen_satelital' not in request.files:
-        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ningún archivo.")
+        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ningún archivo.", tipo_alerta="danger")
 
     file = request.files['imagen_satelital']
     if file.filename == '':
-        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ninguna imagen.")
+        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ninguna imagen.", tipo_alerta="danger")
 
     if file and model:
         temp_path = 'temp_image.jpg'
         file.save(temp_path)
 
-        # Preprocesamiento de la imagen para el modelo
+        # Preprocesamiento de la imagen
         img = load_img(temp_path, target_size=(150, 150))
         img_array = img_to_array(img) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        # Realizar predicción
+        # Inferencia con el modelo
         prediction = model.predict(img_array)[0][0]
         
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
         if prediction > 0.5:
-            resultado = f"⚠️ Alerta: ¡Indicios de Minería Ilegal Detectados! (Confianza: {prediction*100:.2f}%)"
+            resultado = f"Alerta: Indicios de Mineria Ilegal Detectados (Nivel de Confianza: {prediction*100:.2f}%)"
             tipo_alerta = "danger"
         else:
-            resultado = f"✅ Área Normal / Sin Minería Ilegal (Confianza: {(1-prediction)*100:.2f}%)"
+            resultado = f"Resultado: Area Normal / Sin Indicios de Mineria Ilegal (Nivel de Confianza: {(1-prediction)*100:.2f}%)"
             tipo_alerta = "success"
 
         return render_template('dashboard.html', username=session['username'], resultado=resultado, tipo_alerta=tipo_alerta)
     
-    return render_template('dashboard.html', username=session['username'], resultado="El modelo de IA no está cargado correctamente en el servidor.", tipo_alerta="danger")
+    return render_template('dashboard.html', username=session['username'], resultado="El modelo de Inteligencia Artificial no se encuentra cargado en el servidor.", tipo_alerta="danger")
 
 @app.route('/logout')
 def logout():
