@@ -1,6 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from pymongo import MongoClient
 import bcrypt
+import os
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.preprocessing import image
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_mineria_ilegal'
@@ -12,6 +16,19 @@ client = MongoClient(MONGO_URI)
 # Base de datos y colección 'users' donde se guardarán los registros
 db = client['mineria_ilegal']
 users_collection = db['users']
+
+# Cargar el modelo preentrenado de TensorFlow
+MODEL_PATH = 'modelo_mineria.h5'
+model = None
+
+if os.path.exists(MODEL_PATH):
+    try:
+        model = tf.keras.models.load_model(MODEL_PATH)
+        print("Modelo cargado exitosamente.")
+    except Exception as e:
+        print(f"Error al cargar el modelo: {e}")
+else:
+    print(f"Advertencia: No se encontró el archivo {MODEL_PATH}")
 
 @app.route('/')
 def home():
@@ -59,6 +76,45 @@ def dashboard():
     if 'username' in session:
         return render_template('dashboard.html', username=session['username'])
     return redirect(url_for('login'))
+
+@app.route('/detectar', methods=['POST'])
+def detectar():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    if 'imagen' not in request.files:
+        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ningún archivo.")
+
+    file = request.files['imagen']
+    if file.filename == '':
+        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ninguna imagen.")
+
+    if file and model:
+        # Guardar imagen temporalmente
+        temp_path = os.path.join('temp_image.jpg')
+        file.save(temp_path)
+
+        # Preprocesar la imagen
+        img = image.load_img(temp_path, target_size=(150, 150))
+        img_array = image.img_to_array(img) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+
+        # Predicción
+        prediction = model.predict(img_array)[0][0]
+        
+        # Limpiar archivo temporal
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+        # Determinar resultado
+        if prediction > 0.5:
+            resultado = f"Detección de Minería Ilegal Detectada (Confianza: {prediction*100:.2f}%)"
+        else:
+            resultado = f"Área Normal / Sin Minería Ilegal (Confianza: {(1-prediction)*100:.2f}%)"
+
+        return render_template('dashboard.html', username=session['username'], resultado=resultado)
+    
+    return render_template('dashboard.html', username=session['username'], resultado="El modelo no está cargado correctamente.")
 
 @app.route('/logout')
 def logout():
