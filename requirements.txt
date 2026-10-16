@@ -3,3 +3,4 @@ pymongo==4.19.0
 bcrypt==5.0.0
 gunicorn==21.2.0
 tensorflow==2.15.0
+Pillow
