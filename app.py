@@ -1,19 +1,17 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session
 from pymongo import MongoClient
 import bcrypt
 import os
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.preprocessing import image
+from tensorflow.keras.utils import load_img, img_to_array
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_mineria_ilegal'
 
-# Conexión directa a MongoDB Atlas especificando la base de datos mineria_ilegal
+# Conexión a MongoDB Atlas
 MONGO_URI = 'mongodb+srv://crisberjosepambichoreynoso_db_user:Alhis_123@cluster0.hbqoiwt.mongodb.net/mineria_ilegal?retryWrites=true&w=majority'
 client = MongoClient(MONGO_URI)
-
-# Base de datos y colección 'users' donde se guardarán los registros
 db = client['mineria_ilegal']
 users_collection = db['users']
 
@@ -43,11 +41,9 @@ def register():
         password = request.form['password'].encode('utf-8')
         hashed_password = bcrypt.hashpw(password, bcrypt.gensalt())
         
-        # Verificar si el usuario ya existe en MongoDB
         if users_collection.find_one({'username': username}):
-            return "El usuario ya existe. <a href='/register'>Intentar de nuevo</a>"
+            return render_template('register.html', error="El usuario ya existe.")
         
-        # Guardar el nuevo usuario en la colección 'users'
         users_collection.insert_one({
             'username': username,
             'password': hashed_password
@@ -67,7 +63,7 @@ def login():
             session['username'] = username
             return redirect(url_for('dashboard'))
         else:
-            return "Credenciales incorrectas. <a href='/login'>Intentar de nuevo</a>"
+            return render_template('login.html', error="Credenciales incorrectas.")
             
     return render_template('login.html')
 
@@ -77,44 +73,51 @@ def dashboard():
         return render_template('dashboard.html', username=session['username'])
     return redirect(url_for('login'))
 
+@app.route('/entrenar', methods=['POST'])
+def entrenar():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    # Nota: El entrenamiento pesado se realiza desde la terminal de Colab por requerimiento académico.
+    mensaje = "Recuerda que el entrenamiento del modelo se realiza mediante la terminal de Google Colab y el archivo generado se integra en el sistema."
+    return render_template('dashboard.html', username=session['username'], resultado_entreno=mensaje)
+
 @app.route('/detectar', methods=['POST'])
 def detectar():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    if 'imagen' not in request.files:
+    if 'imagen_satelital' not in request.files:
         return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ningún archivo.")
 
-    file = request.files['imagen']
+    file = request.files['imagen_satelital']
     if file.filename == '':
         return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ninguna imagen.")
 
     if file and model:
-        # Guardar imagen temporalmente
-        temp_path = os.path.join('temp_image.jpg')
+        temp_path = 'temp_image.jpg'
         file.save(temp_path)
 
-        # Preprocesar la imagen
-        img = image.load_img(temp_path, target_size=(150, 150))
-        img_array = image.img_to_array(img) / 255.0
+        # Preprocesamiento de la imagen para el modelo
+        img = load_img(temp_path, target_size=(150, 150))
+        img_array = img_to_array(img) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        # Predicción
+        # Realizar predicción
         prediction = model.predict(img_array)[0][0]
         
-        # Limpiar archivo temporal
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
-        # Determinar resultado
         if prediction > 0.5:
-            resultado = f"Detección de Minería Ilegal Detectada (Confianza: {prediction*100:.2f}%)"
+            resultado = f"⚠️ Alerta: ¡Indicios de Minería Ilegal Detectados! (Confianza: {prediction*100:.2f}%)"
+            tipo_alerta = "danger"
         else:
-            resultado = f"Área Normal / Sin Minería Ilegal (Confianza: {(1-prediction)*100:.2f}%)"
+            resultado = f"✅ Área Normal / Sin Minería Ilegal (Confianza: {(1-prediction)*100:.2f}%)"
+            tipo_alerta = "success"
 
-        return render_template('dashboard.html', username=session['username'], resultado=resultado)
+        return render_template('dashboard.html', username=session['username'], resultado=resultado, tipo_alerta=tipo_alerta)
     
-    return render_template('dashboard.html', username=session['username'], resultado="El modelo no está cargado correctamente.")
+    return render_template('dashboard.html', username=session['username'], resultado="El modelo de IA no está cargado correctamente en el servidor.", tipo_alerta="danger")
 
 @app.route('/logout')
 def logout():

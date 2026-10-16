@@ -3,92 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Principal</title>
+    <title>Panel Principal - Detector de Minería</title>
     <style>
         body { 
-            font-family: Arial, sans-serif; 
-            margin: 40px; 
-            background: #f4f4f9; 
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0;
+            padding: 40px;
+            background: #f8fafc; 
+            color: #1e293b;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
         }
         .header { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            margin-bottom: 20px;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #0f172a;
         }
         .section { 
             background: white; 
-            padding: 25px; 
+            padding: 30px; 
             margin-bottom: 25px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            border-radius: 12px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #0f172a;
+            font-size: 20px;
+        }
+        .section p {
+            color: #64748b;
+            font-size: 14px;
         }
         .form-group {
-            margin-top: 15px;
+            margin-top: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
             align-items: flex-start;
         }
         input[type="file"] {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #fafafa;
+            padding: 10px;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
         }
         button.btn-submit {
-            background-color: #007bff;
+            background-color: #2563eb;
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 5px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: background 0.2s;
         }
         button.btn-submit:hover {
-            background-color: #0056b3;
+            background-color: #1d4ed8;
         }
         a.logout { 
-            background: #d9534f; 
+            background: #ef4444; 
             color: white; 
             padding: 10px 18px; 
             text-decoration: none; 
-            border-radius: 5px; 
-            font-weight: bold;
+            border-radius: 8px; 
+            font-weight: 600;
+            font-size: 14px;
+            transition: background 0.2s;
         }
         a.logout:hover {
-            background: #c9302c;
+            background: #dc2626;
+        }
+        .alert {
+            margin-top: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .alert.danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 5px solid #ef4444;
+        }
+        .alert.success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border-left: 5px solid #10b981;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Bienvenido, {{ username }}</h1>
-        <a href="/logout" class="logout">Cerrar Sesión</a>
-    </div>
-    
-    <!-- Sección 1: Entrenamiento -->
-    <div class="section">
-        <h2>Sección 1: Panel de Entrenamiento (Colab)</h2>
-        <p>Sube tus carpetas o imágenes de entrenamiento y configura el proceso.</p>
-        <form action="/entrenar" method="POST" enctype="multipart/form-data" class="form-group">
-            <input type="file" name="archivos_entrenamiento" webkitdirectory directory multiple required>
-            <button type="submit" class="btn-submit">Iniciar Entrenamiento</button>
-        </form>
-    </div>
+    <div class="container">
+        <div class="header">
+            <h1>Bienvenido, {{ username }} 👋</h1>
+            <a href="/logout" class="logout">Cerrar Sesión</a>
+        </div>
+        
+        <!-- Sección 1: Entrenamiento -->
+        <div class="section">
+            <h2>Sección 1: Panel de Entrenamiento (Colab)</h2>
+            <p>Sube tus carpetas o imágenes de entrenamiento para configurar el flujo de trabajo.</p>
+            <form action="/entrenar" method="POST" enctype="multipart/form-data" class="form-group">
+                <input type="file" name="archivos_entrenamiento" webkitdirectory directory multiple>
+                <button type="submit" class="btn-submit">Iniciar Entrenamiento</button>
+            </form>
+            {% if resultado_entreno %}
+                <div class="alert success" style="margin-top: 15px;">{{ resultado_entreno }}</div>
+            {% endif %}
+        </div>
 
-    <!-- Sección 2: Detección -->
-    <div class="section">
-        <h2>Sección 2: Comparación y Detección</h2>
-        <p>Sube una imagen satelital o aérea para verificar si hay indicios de minería ilegal.</p>
-        <form action="/detectar" method="POST" enctype="multipart/form-data" class="form-group">
-            <input type="file" name="imagen_satelital" accept="image/*" required>
-            <button type="submit" class="btn-submit">Procesar y Analizar Imagen</button>
-        </form>
+        <!-- Sección 2: Detección -->
+        <div class="section">
+            <h2>Sección 2: Comparación y Detección de Minería Ilegal</h2>
+            <p>Sube una imagen satelital o aérea para verificar mediante inteligencia artificial si existen indicios de minería ilegal.</p>
+            <form action="/detectar" method="POST" enctype="multipart/form-data" class="form-group">
+                <input type="file" name="imagen_satelital" accept="image/*" required>
+                <button type="submit" class="btn-submit">Procesar y Analizar Imagen</button>
+            </form>
+
+            {% if resultado %}
+                <div class="alert {{ tipo_alerta }}">
+                    {{ resultado }}
+                </div>
+            {% endif %}
+        </div>
     </div>
 
 </body>
