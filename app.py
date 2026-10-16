@@ -4,6 +4,7 @@ import bcrypt
 import os
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import layers, models
 from tensorflow.keras.utils import load_img, img_to_array
 
 app = Flask(__name__)
@@ -15,17 +16,27 @@ client = MongoClient(MONGO_URI)
 db = client['mineria_ilegal']
 users_collection = db['users']
 
-# Cargar el modelo preentrenado de TensorFlow de forma segura (compatible con Render)
-MODEL_PATH = 'modelo_mineria.h5'
-model = None
+# Construir la estructura exacta del modelo y cargar solo los pesos (100% compatible en Render)
+model = models.Sequential([
+    layers.Rescaling(1./255, input_shape=(150, 150, 3)),
+    layers.Conv2D(16, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Conv2D(32, 3, padding='same', activation='relu'),
+    layers.MaxPooling2D(),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(1, activation='sigmoid')
+])
 
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+MODEL_PATH = 'modelo_mineria.h5'
 if os.path.exists(MODEL_PATH):
     try:
-        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-        print("Modelo cargado exitosamente.")
+        model.load_weights(MODEL_PATH)
+        print("Pesos del modelo cargados exitosamente.")
     except Exception as e:
-        print(f"Error al cargar el modelo: {e}")
+        print(f"Error al cargar los pesos del modelo: {e}")
 else:
     print(f"Advertencia: No se encontró el archivo {MODEL_PATH}")
 
@@ -93,7 +104,7 @@ def detectar():
     if file.filename == '':
         return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ninguna imagen.", tipo_alerta="danger")
 
-    if file and model:
+    if file:
         temp_path = 'temp_image.jpg'
         file.save(temp_path)
 
@@ -117,7 +128,7 @@ def detectar():
 
         return render_template('dashboard.html', username=session['username'], resultado=resultado, tipo_alerta=tipo_alerta)
     
-    return render_template('dashboard.html', username=session['username'], resultado="El modelo de Inteligencia Artificial no se encuentra cargado en el servidor.", tipo_alerta="danger")
+    return render_template('dashboard.html', username=session['username'], resultado="Error al procesar la imagen.", tipo_alerta="danger")
 
 @app.route('/logout')
 def logout():
