@@ -146,49 +146,6 @@ def detectar():
 def logout():
     session.pop('username', None)
     return redirect(url_for('login'))
-@app.route('/detectar', methods=['POST'])
-def detectar():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-
-    if 'imagen_satelital' not in request.files:
-        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ningún archivo.", tipo_alerta="danger")
-
-    file = request.files['imagen_satelital']
-    if file.filename == '':
-        return render_template('dashboard.html', username=session['username'], resultado="No se seleccionó ninguna imagen.", tipo_alerta="danger")
-
-    if file:
-        temp_path = 'temp_image.jpg'
-        file.save(temp_path)
-
-        try:
-            model = get_model()
-            img = load_img(temp_path, target_size=(150, 150))
-            img_array = img_to_array(img) / 255.0
-            img_array = np.expand_dims(img_array, axis=0)
-
-            prediction = float(model.predict(img_array, verbose=0)[0][0])
-            tf.keras.backend.clear_session()
-
-        except Exception as e:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-            return render_template('dashboard.html', username=session['username'], resultado=f"Error en la inferencia: {str(e)}", tipo_alerta="danger")
-
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
-        if prediction > 0.5:
-            resultado = f"Alerta: Indicios de Mineria Ilegal Detectados (Nivel de Confianza: {prediction*100:.2f}%)"
-            tipo_alerta = "danger"
-        else:
-            resultado = f"Resultado: Area Normal / Sin Indicios de Mineria Ilegal (Nivel de Confianza: {(1-prediction)*100:.2f}%)"
-            tipo_alerta="success"
-
-        return render_template('dashboard.html', username=session['username'], resultado=resultado, tipo_alerta=tipo_alerta)
-    
-    return render_template('dashboard.html', username=session['username'], resultado="Error al procesar la imagen.", tipo_alerta="danger")
 
 if __name__ == '__main__':
     app.run(debug=True)
