@@ -7,6 +7,10 @@ import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.utils import load_img, img_to_array
 
+# Limitar uso de memoria agresivo para servidores con recursos limitados
+tf.config.threading.set_inter_op_parallelism_threads(1)
+tf.config.threading.set_intra_op_parallelism_threads(1)
+
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_mineria_ilegal'
 
@@ -16,29 +20,27 @@ client = MongoClient(MONGO_URI)
 db = client['mineria_ilegal']
 users_collection = db['users']
 
-# Construir la estructura exacta del modelo y cargar solo los pesos (100% compatible en Render)
-model = models.Sequential([
-    layers.Rescaling(1./255, input_shape=(150, 150, 3)),
-    layers.Conv2D(16, 3, padding='same', activation='relu'),
-    layers.MaxPooling2D(),
-    layers.Conv2D(32, 3, padding='same', activation='relu'),
-    layers.MaxPooling2D(),
-    layers.Flatten(),
-    layers.Dense(64, activation='relu'),
-    layers.Dense(1, activation='sigmoid')
-])
-
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-
 MODEL_PATH = 'modelo_mineria.h5'
-if os.path.exists(MODEL_PATH):
-    try:
-        model.load_weights(MODEL_PATH)
-        print("Pesos del modelo cargados exitosamente.")
-    except Exception as e:
-        print(f"Error al cargar los pesos del modelo: {e}")
-else:
-    print(f"Advertencia: No se encontró el archivo {MODEL_PATH}")
+
+def get_model():
+    # Construir la estructura y cargar pesos bajo demanda para ahorrar RAM en Render
+    tf.keras.backend.clear_session()
+    m = models.Sequential([
+        layers.Rescaling(1./255, input_shape=(150, 150, 3)),
+        layers.Conv2D(16, 3, padding='same', activation='relu'),
+        layers.MaxPooling2D(),
+        layers.Conv2D(32, 3, padding='same', activation='relu'),
+        layers.MaxPooling2D(),
+        layers.Flatten(),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    if os.path.exists(MODEL_PATH):
+        try:
+            m.load_weights(MODEL_PATH)
+        except Exception as e:
+            print(f"Error al cargar pesos: {e}")
+    return m
 
 @app.route('/')
 def home():
@@ -108,14 +110,24 @@ def detectar():
         temp_path = 'temp_image.jpg'
         file.save(temp_path)
 
-        # Preprocesamiento de la imagen
-        img = load_img(temp_path, target_size=(150, 150))
-        img_array = img_to_array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)
+        try:
+            # Cargar modelo de forma aislada para evitar saturar la memoria RAM del servidor
+            model = get_model()
 
-        # Inferencia con el modelo
-        prediction = model.predict(img_array)[0][0]
-        
+            img = load_img(temp_path, target_size=(150, 150))
+            img_array = img_to_array(img) / 255.0
+            img_array = np.expand_dims(img_array, axis=0)
+
+            prediction = float(model.predict(img_array, verbose=0)[0][0])
+            
+            # Limpiar memoria de TensorFlow inmediatamente
+            tf.keras.backend.clear_session()
+
+        except Exception as e:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            return render_template('dashboard.html', username=session['username'], resultado=f"Error en la inferencia: {str(e)}", tipo_alerta="danger")
+
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
